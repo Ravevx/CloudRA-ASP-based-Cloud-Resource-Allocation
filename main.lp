@@ -40,15 +40,14 @@ used_storage(S,St) :-
     St = #sum { Rs,V : assign(V,S), vm_require(V,storage,Rs) }.
 
 % usage exceeding capacity
-:- used_cpu(S,U),     server_capacity(S,cpu,Cap),      U > Cap.
-:- used_memory(S,U),  server_capacity(S,memory,CapM),  U > CapM.
-:- used_storage(S,U), server_capacity(S,storage,CapS), U > CapS.
+:- used_cpu(S,U),server_capacity(S,cpu,Cap),U > Cap.
+:- used_memory(S,U),server_capacity(S,memory,CapM),U > CapM.
+:- used_storage(S,U),server_capacity(S,storage,CapS),U > CapS.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % COMPANY PACKAGE CAPACITY LIMITS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% total usage per company (for constraints)
+% total usage per company
 company_used(C,cpu,U) :-
     company(C),
     U = #sum { R,V,S : assign(V,S), vm_company(V,C), vm_require(V,cpu,R) }.
@@ -77,7 +76,7 @@ company_used(C,storage,U) :-
    package(P,storage,PS),
    U > PS.
 
-%%%%%%%%%%%%%%%%%%%%
+
 % utilisation
 
 used_server(S) :- used_cpu(S,U), U > 0.
@@ -94,7 +93,7 @@ memory_util(S,P) :-
     CapM > 0,
     P = (Mem * 100) / CapM.
 
-%%%%%%%%%%
+
 % power consumed only if server used
 server_power_consumed(S,P) :-
     used_server(S),
@@ -104,7 +103,7 @@ server_power_consumed(S,P) :-
 total_power(T) :-
     T = #sum { P,S : server_power_consumed(S,P) }.
 
-%%%%%%%%%%%%
+
 % cost for each company (license + all servers they touch)
 
 % company C uses server S
@@ -115,19 +114,12 @@ company_uses_server(C,S) :-
 % license costs
 license_cost(C,LC) :-
     company(C),
-    LC = #sum { Price,V,S :
-                  assign(V,S),
-                  vm_company(V,C),
-                  license(V,Price)
-              }.
+    LC = #sum { Price,V,S :assign(V,S),vm_company(V,C),license(V,Price)}.
 
 % server costs
 server_cost(C,SC) :-
     company(C),
-    SC = #sum { Price,S :
-                   company_uses_server(C,S),
-                   cost(S,Price)
-               }.
+    SC = #sum { Price,S :company_uses_server(C,S),cost(S,Price)}.
 
 % total cost
 company_total_cost(C,Total) :-
@@ -135,7 +127,7 @@ company_total_cost(C,Total) :-
     server_cost(C,SC),
     Total = LC + SC.
 
-%%%%%%%%%%
+
 % SLA checks
 
 sla_violation(S) :-
@@ -148,27 +140,27 @@ sla_violation(S) :-
     sla_threshold(memory,T),
     P > T.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% OPTIMIZATION (with optimize_on switch)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% OPTIMIZATION
 
 optimize_on.
-#minimize { Cost@0,C : company_total_cost(C,Cost), optimize_on }.
-#minimize { 1@1,S : used_server(S), optimize_on }.
-#minimize { Pow@2,S : server_power_consumed(S,Pow), optimize_on }.
-#minimize { 20@3,S : used_server(S), server_type(S,backup), optimize_on }.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% USER CONTROLS: max cost, forbid server
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#minimize { Cost@3,C : company_total_cost(C,Cost), optimize_on }.
+#minimize { 1@2,S : used_server(S), optimize_on }.
+#minimize { Pow@1,S : server_power_consumed(S,Pow), optimize_on }.
+#minimize { 20@0,S : used_server(S), server_type(S,backup), optimize_on }.
+
+
+
+% For ui- max cost, forbid server
 
 max_cost(C,M) :- max_cost_on, max_cost_value(C,M).
 :- max_cost_on, max_cost(C,M), company_total_cost(C,Cost), Cost > M.
 
 :- forbid_server(S), used_server(S).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 % OUTPUT
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #show assign/2.
 #show used_server/1.
@@ -185,9 +177,8 @@ max_cost(C,M) :- max_cost_on, max_cost_value(C,M).
 #show max_cost_value/2.
 #show max_cost_on/0.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% EXTRA AGGREGATES FOR DASHBOARD
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% FOR DASHBOARD UI
 
 % total resource usage per company (for widgets)
 company_cpu_used(C,CPU) :-
@@ -208,6 +199,3 @@ critical_vms(N) :-
 
 regular_vms(N) :-
     N = #count { V : vm_priority(V,regular) }.
-
-% example company conflict fact (extend if needed)
-company_conflict(acme, globex).
