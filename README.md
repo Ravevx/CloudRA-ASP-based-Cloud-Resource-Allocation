@@ -5,7 +5,7 @@ CloudRA is a cloud resource allocation prototype built with **Answer Set Program
 Developed by **Jayesh Choudhari** and **Uday Kale**.
 
 ---
-![CloudRA Dashboard](dashboard.jpg)
+<img src="dashboard.png" alt="Tab:explain prediction" width="500"/>
 ## Overview
 
 CloudRA answers the question:
