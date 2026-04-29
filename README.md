@@ -231,17 +231,4 @@ python run_clinguin.py
   - Clinguin UI framework
   - Clingraph (for graph visualization)
 
----
 
-## Possible Extensions
-
-- Add more instance files with different workloads.
-- Extend the SLA model (e.g., include response time, availability zones).
-- Add new UI controls:
-  - Per‑company min / max number of VMs.
-  - Per‑server power or cost caps.
-- Integrate with real cloud APIs for monitoring or deployment.
-
----
-
-If you want, the next step can be to tailor a shorter “Project Summary” paragraph you can also paste into your GitHub repo description or LinkedIn.
