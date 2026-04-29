@@ -1,4 +1,4 @@
-# CloudRA: ASP-based Cloud Resource Allocation Dashboard
+# CloudRA: ASP-based Cloud Resource Allocation
 
 CloudRA is a cloud resource allocation prototype built with **Answer Set Programming (ASP)** and an interactive dashboard UI. It models a realistic cloud provider scenario with multiple companies, VMs, servers, SLAs, and pricing, and uses multi‑objective optimization to compute high‑quality VM placements.
 
